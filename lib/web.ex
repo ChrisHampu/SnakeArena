@@ -16,7 +16,8 @@ defmodule Web do
       # worker(Web.Worker, [arg1, arg2, arg3]),
       worker(Web.Board, [%{}, [name: :board_server]]),
       worker(Web.Queue, [[], [name: :queue_server]]),
-      worker(Web.Game, [%{}, [name: :game_server]])
+      worker(Web.Game, [%{:state => :finished}, [name: :game_server]]),
+      worker(Web.Snakes, [[], [name: :snake_server]])
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

@@ -1,8 +1,8 @@
 defmodule Web.APIView do
   use Web.Web, :view
 
-  def render("register.json", %{tile: tile}) do
-    tile
+  def render("register.json", %{}) do
+    "register"
   end
 
   def render("status.json", %{queue: queue}) do
@@ -19,7 +19,7 @@ defmodule Web.APIView do
       name: "Test Snake",
       taunt: "Test snake please ignore",
       head_url: "/path/to/icon",
-      post_url: "localhost:4000/api/v1/move"
+      move_url: "localhost:4000/api/v1/move"
     }
   end
 

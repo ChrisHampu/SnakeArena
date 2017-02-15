@@ -7,7 +7,10 @@ defmodule Web.Queue do
 
     # Add an entry to the queue
     def add(snake) do
-        GenServer.cast(:queue_server, {:add, snake})
+        GenServer.call(:queue_server, {:add, snake})
+
+        
+        Web.Game.try_new_game()
     end
 
     # Number of snakes in the queue
@@ -29,13 +32,16 @@ defmodule Web.Queue do
 
     # Server API
 
-    def handle_cast({:add, snake}, state) do
+    def handle_call({:add, snake}, _from, state) do
 
         # Ensure a snake is not being added as a duplicate
         if is_nil(List.keyfind(state, elem(snake, 0), 0)) do
-            {:noreply, [snake | state]}
+
+            new_state = [snake | state]
+
+            {:reply, new_state, new_state}
         else
-            {:noreply, state}
+            {:reply, state, state}
         end
     end
 
