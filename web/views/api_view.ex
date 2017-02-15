@@ -10,14 +10,24 @@ defmodule Web.APIView do
   end
   
   def render("test_snake.json", %{}) do
-    %{data: %{}}
+    %{status: "registered"}
   end
 
   def render("start.json", %{}) do
-    %{data: %{}}
+    %{
+      color: "#FF00FF",
+      name: "Test Snake",
+      taunt: "Test snake please ignore",
+      head_url: "/path/to/icon"
+    }
   end
 
   def render("move.json", %{}) do
-    %{data: %{}}
+    case :rand.uniform(4) do
+      1 -> %{move: "up"}
+      2 -> %{move: "down"}
+      3 -> %{move: "left"}
+      _ -> %{move: "right"}
+    end
   end
 end
