@@ -25,6 +25,11 @@ defmodule Web.Router do
     scope "/v1", as: :v1 do
       post "/register", Web.APIController, :register
       post "/status", Web.APIController, :status
+
+      # Testing functionality as a dummy snake
+      post "/test_snake", Web.APIController, :test_snake
+      post "/move", Web.APIController, :move
+      post "/start", Web.APIController, :start
     end
   end
 end

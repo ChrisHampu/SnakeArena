@@ -21,20 +21,36 @@ defmodule Web.Queue do
        GenServer.call(:queue_server, {:pull}) 
     end
 
-    # Server API
+    # Returns the list without removing any entries
+    def get_all() do
 
-    def handle_cast({:add, snake}, _from, state) do
-
-        {:noreply, [snake | state]}
+         GenServer.call(:queue_server, {:get}) 
     end
 
-    def handle_call({:length, board}, _from, state) do
+    # Server API
+
+    def handle_cast({:add, snake}, state) do
+
+        # Ensure a snake is not being added as a duplicate
+        if is_nil(List.keyfind(state, elem(snake, 0), 0)) do
+            {:noreply, [snake | state]}
+        else
+            {:noreply, state}
+        end
+    end
+
+    def handle_call({:length}, _from, state) do
 
         {:reply, length(state), state}
     end
 
-    def handle_call({:pull, board}, _from, state) do
+    def handle_call({:pull}, _from, state) do
 
         {:reply, state, []}
+    end
+
+    def handle_call({:get}, _from, state) do
+
+        {:reply, state, state}
     end
 end

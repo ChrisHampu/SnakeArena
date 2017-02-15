@@ -5,7 +5,19 @@ defmodule Web.APIView do
     tile
   end
 
-  def render("status.json", %{api: api}) do
+  def render("status.json", %{queue: queue}) do
+    %{queue: queue}
+  end
+  
+  def render("test_snake.json", %{}) do
+    %{data: %{}}
+  end
+
+  def render("start.json", %{}) do
+    %{data: %{}}
+  end
+
+  def render("move.json", %{}) do
     %{data: %{}}
   end
 end

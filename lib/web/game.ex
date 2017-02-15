@@ -7,12 +7,13 @@ defmodule Web.Game do
     end
 
     # Initiates game logic using current queue
-    def start_game() do
+    def start() do
 
+        queue = Queue.pull_all()
     end
 
     # Ends a game then initiates a timer to begin the next game
-    def end_game() do
+    def end() do
 
     end
 end
