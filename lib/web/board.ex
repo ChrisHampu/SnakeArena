@@ -39,7 +39,7 @@ defmodule Web.Board do
 
     def handle_call({:get_board}, _from, state) do
 
-        {:reply, state[:board], state}
+        {:reply, state, state}
     end
 
     def handle_call({:get_board_tile, x, y}, _from, state) do

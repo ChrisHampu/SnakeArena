@@ -18,7 +18,8 @@ defmodule Web.APIView do
       color: "#FF00FF",
       name: "Test Snake",
       taunt: "Test snake please ignore",
-      head_url: "/path/to/icon"
+      head_url: "/path/to/icon",
+      post_url: "localhost:4000/api/v1/move"
     }
   end
 

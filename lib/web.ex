@@ -15,7 +15,8 @@ defmodule Web do
       # Start your own worker by calling: Web.Worker.start_link(arg1, arg2, arg3)
       # worker(Web.Worker, [arg1, arg2, arg3]),
       worker(Web.Board, [%{}, [name: :board_server]]),
-      worker(Web.Queue, [[], [name: :queue_server]])
+      worker(Web.Queue, [[], [name: :queue_server]]),
+      worker(Web.Game, [%{}, [name: :game_server]])
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
