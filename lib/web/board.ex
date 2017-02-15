@@ -28,7 +28,7 @@ defmodule Web.Board do
     # Set the tile at x/y and returns new board state
     def set_board_tile(x, y, value) do
 
-        GenServer.call(:board_server, {:set_board_tile, x, y, value})
+        GenServer.cast(:board_server, {:set_board_tile, x, y, value})
     end
 
     # Server API
@@ -47,12 +47,12 @@ defmodule Web.Board do
         {:reply, Enum.at(Enum.at(state[:board], x), y), state}
     end
 
-    def handle_call({:set_board_tile, x, y, value}, _from, state) do
+    def handle_cast({:set_board_tile, x, y, value}, state) do
 
         new_board = List.replace_at(state[:board], x, List.replace_at(Enum.at(state[:board], x), y, value))
 
         new_state = Map.put(state, :board, new_board)
 
-        {:reply, new_board, new_state}
+        {:noreply, new_state}
     end
 end
