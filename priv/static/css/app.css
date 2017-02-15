@@ -1,0 +1,61 @@
+body, html {
+  height: 100vh;
+  margin: 0;
+}
+
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  background-color: teal;
+}
+
+.title {
+  font-size: 1.2rem;
+  position: absolute;
+  left: 1rem;
+}
+
+.info {
+  text-align: center;
+}
+
+.status {
+  font-size: 1rem;
+}
+
+.time {
+  font-size: 1rem;
+}
+
+.alert {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+main[role="main"] {
+  flex: 1;
+  display: flex;
+}
+
+.field {
+  flex: 1;
+  margin: 1.5rem;
+  border: 1px solid black;
+}
+
+.scoreboard {
+  padding: 1rem;
+}
+
+.row {
+
+}
+
+.row > div {
+  display: inline-block;
+}

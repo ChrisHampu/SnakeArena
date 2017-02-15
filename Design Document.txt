@@ -1,0 +1,43 @@
+Game View
+    Header
+        Info
+            Timer: Minutes/seconds left in the current round or time until next round
+            Status: Whether current round is in progress or new round is beginning
+    Content
+        Game board
+            Snake game
+        Score board
+            Snakes: A list of snakes in the current round
+                Icon: An icon for the snake
+                Name: Name of the snake
+                Score: How big the snake is + apples its eaten
+                Kills: Names of snakes that it's killed
+    
+Game Logic
+
+If no round is in progress
+    - AI's boot and sent a POST request to register for the next round
+    - Once at minimum 2 AI's have registered, a 1 minute countdown begins (overrideable)
+    - During this 1 minute, other AI's can continue to register
+    - Once round has begun, all registered snakes are randomly placed on the field
+    - Field size is determined randomly
+    - Apple is randomly placed on the field
+    - Server will now request moves from the snakes and play the game until 1 snake is left alive
+
+If round is in progress:
+    - Placed into queue for next round and awaits round beginning automatically
+
+
+API
+
+root: /api/v1
+
+/status: return current game status
+/register: register a callback route to be called by the game api
+
+
+Server Logic
+
+Queue: AI's will register to queue, then be pulled from queue when game starts
+Scheduler: Handles the calling of all snake AI's
+Board: Handle all game board state
