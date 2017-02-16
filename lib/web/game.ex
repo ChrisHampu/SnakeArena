@@ -34,12 +34,28 @@ defmodule Web.Game do
         |> Enum.map(&Map.get(elem(&1, 1), :body)) # Get request body
         |> Enum.map(&Poison.Parser.parse(&1)) # Parse json
         |> Enum.filter_map(&(elem(&1, 0) == :ok), &(elem(&1, 1))) # Ensure parser succeeded
+        |> Enum.map(fn snake -> %{ # Transform keys to atoms and take only whats needed
+            :name => snake["name"],
+            :color => snake["color"],
+            :head_url => snake["head_url"],
+            :taunt => snake["taunt"],
+            :move_url => snake["move_url"]
+        } end)
 
         if length(queue) == 0 do
             {:error, "Not enough snakes in the game"}
         else
 
-            Snakes.add(queue)
+            # Assign each snake a random spot on the board, full health, update board, then cache snake data
+            Snakes.add(for snake <- queue,
+                space = Board.get_unoccupied_space,
+                snake = Map.merge(snake, %{
+                    :coords => [space.x, space.y],
+                    :health_points => 100
+                }),
+                Board.set_board_tile(space.x, space.y, %{snake: snake.name, state: :snake}) do
+                snake
+            end)
 
             GenServer.cast(:game_server, {:init})
 
@@ -56,12 +72,40 @@ defmodule Web.Game do
 
     def start_game do
     
-        IO.puts "start"
     end
 
-    def retrieve_moves do
+    def perform_turn do
 
-        IO.puts "moves"
+        board = Board.get_board()
+        snakes = Snakes.get_snakes()
+        game = get_game_state()
+
+        snake_data = Enum.map(snakes, fn snake -> %{
+            name: snake.name,
+
+        } end)
+
+        # This is what is sent to the snakes to retrieve a move
+        turn_state = %{
+            width: board.width,
+            height: board.height,
+            turn: game.turn
+        }
+
+    end
+
+    def retrieve_moves(turn_state) do
+
+        Snakes.get_snakes()
+        |> Enum.map(fn snake -> 
+            %{
+                request: HTTPoison.post(snake.move_url, turn_state, [{"Content-Type", "application/json"}], [recv_timeout: 200])
+            }
+        end) # Send post request
+    end
+
+    def process_moves(turn_state, moves) do
+        
     end
 
     def end_game do
