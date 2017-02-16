@@ -49,11 +49,8 @@ defmodule Web.Game do
             # Assign each snake a random spot on the board, full health, update board, then cache snake data
             Snakes.add(for snake <- queue,
                 space = Board.get_unoccupied_space,
-                snake = Map.merge(snake, %{
-                    :coords => [space.x, space.y],
-                    :health_points => 100
-                }),
-                Board.set_board_tile(space.x, space.y, %{snake: snake.name, state: :snake}) do
+                snake = Map.merge(snake, %{:health_points => 100}),
+                Board.set_board_tile(space.x, space.y, :head, snake.name) do
                 snake
             end)
 
@@ -70,42 +67,68 @@ defmodule Web.Game do
         GenServer.call(:game_server, {:get})
     end
 
+    def get_turn_state do
+
+        board = Board.get_board()
+        normalized_board = Board.get_normalized_board()
+        snakes = Snakes.get_snakes()
+        game = get_game_state()
+
+        # Combines the cached snake client data with the board locations for each snake
+        snake_data = Enum.map(snakes, fn snake -> %{
+            taunt: snake.taunt,
+            name: snake.name,
+            health_points: snake.health_points,
+            coords: Enum.map(Enum.filter(normalized_board, &(Map.get(&1, :snake) == snake.name)),
+                fn coord -> [coord.x, coord.y] end)
+        } end)
+
+        food_data = Enum.map(Enum.filter(normalized_board, &(Map.get(&1, :state) == :food)),
+                fn coord -> [coord.x, coord.y] end)
+
+        # This is what is sent to the snakes to retrieve a move
+        %{
+            width: board.width,
+            height: board.height,
+            turn: game.turn,
+            snakes: snake_data,
+            board: board,
+            food: food_data
+        }
+    end
+
     def start_game do
     
+        perform_turn()
     end
 
     def perform_turn do
 
-        board = Board.get_board()
-        snakes = Snakes.get_snakes()
-        game = get_game_state()
-
-        snake_data = Enum.map(snakes, fn snake -> %{
-            name: snake.name,
-
-        } end)
-
-        # This is what is sent to the snakes to retrieve a move
-        turn_state = %{
-            width: board.width,
-            height: board.height,
-            turn: game.turn
-        }
-
+        get_turn_state()
+        |> retrieve_moves
+        |> process_moves
     end
 
+    # Send post request to each client to retrieve the next moves based on current state
     def retrieve_moves(turn_state) do
 
-        Snakes.get_snakes()
-        |> Enum.map(fn snake -> 
-            %{
-                request: HTTPoison.post(snake.move_url, turn_state, [{"Content-Type", "application/json"}], [recv_timeout: 200])
-            }
-        end) # Send post request
+        for snake <- Snakes.get_snakes() do
+            try do
+                {snake.name, HTTPoison.post(snake.move_url, elem(Poison.encode(Map.merge(turn_state, %{:you => snake.name})), 1), [{"Content-Type", "application/json"}], [recv_timeout: 200])
+                |> elem(1)
+                |> Map.get(:body)
+                |> Poison.Parser.parse
+                |> elem(1)
+                |> Map.get("move")}
+            rescue
+                _ -> {snake.name, elem({"up", "down", "left", "right"}, :rand.uniform(3))}
+            end
+        end
     end
 
-    def process_moves(turn_state, moves) do
-        
+    def process_moves(moves) do
+
+        IO.inspect moves
     end
 
     def end_game do

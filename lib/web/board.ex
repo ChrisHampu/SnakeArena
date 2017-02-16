@@ -10,7 +10,7 @@ defmodule Web.Board do
         x = max(8, :rand.uniform(12))
         y = max(8, :rand.uniform(12))
 
-        board = Enum.map(1..x, fn x -> Enum.map(1..y, fn y -> :empty end) end)
+        board = Enum.map(1..x, fn x -> Enum.map(1..y, fn y -> %{:state => :empty} end) end)
 
         GenServer.call(:board_server, {:put_board, %{board: board, width: x, height: y}})
     end
@@ -26,7 +26,7 @@ defmodule Web.Board do
 
         Enum.map(0..state.width-1, fn col ->
             Enum.map(0..state.height-1, fn row ->
-                %{x: col, y: row, state: Enum.at(Enum.at(state.board, col), row)}
+                Map.merge(%{x: col, y: row}, Enum.at(Enum.at(state.board, col), row))
             end)
         end)
         |> Enum.flat_map(&(&1))
@@ -38,9 +38,9 @@ defmodule Web.Board do
     end
 
     # Set the tile at x/y and returns new board state
-    def set_board_tile(x, y, value) do
+    def set_board_tile(x, y, state, snake \\ nil) do
 
-        GenServer.cast(:board_server, {:set_board_tile, x, y, value})
+        GenServer.cast(:board_server, {:set_board_tile, x, y, state, snake})
     end
 
     def get_unoccupied_space() do
@@ -66,9 +66,9 @@ defmodule Web.Board do
         {:reply, Enum.at(Enum.at(state[:board], x), y), state}
     end
 
-    def handle_cast({:set_board_tile, x, y, value}, state) do
+    def handle_cast({:set_board_tile, x, y, tile_state, snake}, state) do
 
-        new_board = List.replace_at(state[:board], x, List.replace_at(Enum.at(state[:board], x), y, value))
+        new_board = List.replace_at(state[:board], x, List.replace_at(Enum.at(state[:board], x), y, %{:state => tile_state, :snake => snake}))
 
         new_state = Map.put(state, :board, new_board)
 
@@ -81,8 +81,9 @@ defmodule Web.Board do
         spaces = normalized_board
         |> Enum.filter(&(Map.get(&1, :state) == :empty))
 
-        picked = :rand.uniform(length(spaces) - 1)
+        # TODO: Case when no empty spaces are left
 
+        picked = :rand.uniform(length(spaces) - 1)
         {:reply, Enum.at(spaces, picked), state}
     end
 end

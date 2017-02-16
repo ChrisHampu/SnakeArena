@@ -1,8 +1,8 @@
 defmodule Web.APIController do
   use Web.Web, :controller
 
-  alias Web.Board
   alias Web.Queue
+  alias Web.Game
 
   def register(conn, _params) do
 
@@ -13,7 +13,7 @@ defmodule Web.APIController do
 
     queue = Enum.map(Queue.get_all(), fn snake -> %{url: elem(snake, 0)} end)
 
-    render(conn, "status.json", queue: queue)
+    render(conn, "status.json", queue: queue, game: Game.get_turn_state())
   end
 
   def test_snake(conn, _params) do

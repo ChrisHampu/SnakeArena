@@ -5,8 +5,8 @@ defmodule Web.APIView do
     "register"
   end
 
-  def render("status.json", %{queue: queue}) do
-    %{queue: queue}
+  def render("status.json", %{queue: queue, game: state}) do
+    %{queue: queue, game: state}
   end
   
   def render("test_snake.json", %{}) do
