@@ -11,8 +11,6 @@ defmodule Web.Game do
     def try_new_game do
 
         state = GenServer.call(:game_server, {:get})
-        
-        IO.inspect state
 
         if state[:state] == :finished do
             new_game()
@@ -69,7 +67,7 @@ defmodule Web.Game do
 
     def get_turn_state do
 
-        board = Board.get_board()
+        board_state = Board.get_board()
         normalized_board = Board.get_normalized_board()
         snakes = Snakes.get_snakes()
         game = get_game_state()
@@ -88,11 +86,11 @@ defmodule Web.Game do
 
         # This is what is sent to the snakes to retrieve a move
         %{
-            width: board.width,
-            height: board.height,
+            width: board_state.width,
+            height: board_state.height,
             turn: game.turn,
             snakes: snake_data,
-            board: board,
+            board: board_state.board,
             food: food_data
         }
     end
@@ -128,7 +126,46 @@ defmodule Web.Game do
 
     def process_moves(moves) do
 
-        IO.inspect moves
+        initial_board = Board.get_board()
+        normalized_board = Board.get_normalized_board()
+
+        new_moves = for move <- moves,
+            name = elem(move, 0),
+            direction = elem(move, 1),
+            position = Enum.find(normalized_board, fn cell -> cell[:snake] == name && cell[:state] == :head end),
+            dest_coord = get_new_position_from_move(position.x, position.y, direction),
+            dest_tile = Board.get_board_tile(dest_coord[:x], dest_coord[:y]) do
+                cond do
+                    dest_tile == nil -> "dead"
+                    dest_tile.state == :empty -> {name, position, direction, dest_coord}
+                end
+        end
+
+        for move <- new_moves,
+            position = elem(move, 1),
+            dest = elem(move, 3),
+            name = elem(move, 0) do
+            cond do
+                move == "dead" -> Board.set_board_tile(move.position.x, move.position.y, :empty, nil)
+                true -> move_snake(name, position.x, position.y, dest[:x], dest[:y])
+            end
+        end
+    end
+
+    def move_snake(name, x, y, new_x, new_y) do
+
+        Board.set_board_tile(x, y, :empty, nil)
+        Board.set_board_tile(new_x, new_y, :head, name)
+    end
+
+    def get_new_position_from_move(x, y, direction) do
+        
+        cond do
+            direction == "up" -> [x: x, y: y-1]
+            direction == "down" -> [x: x, y: y+1]
+            direction == "left" -> [x: x+1, y: y]
+            direction == "right" -> [x: x-1, y: y]
+        end
     end
 
     def end_game do

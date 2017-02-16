@@ -63,7 +63,11 @@ defmodule Web.Board do
 
     def handle_call({:get_board_tile, x, y}, _from, state) do
 
-        {:reply, Enum.at(Enum.at(state[:board], x), y), state}
+        if x < 0 || x > state.width - 1 || y < 0 || y > state.height - 1 do
+            {:reply, nil, state}
+        else
+            {:reply, Enum.at(Enum.at(state[:board], x), y), state}
+        end
     end
 
     def handle_cast({:set_board_tile, x, y, tile_state, snake}, state) do
