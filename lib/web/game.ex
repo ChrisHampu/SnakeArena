@@ -187,6 +187,9 @@ defmodule Web.Game do
 
     def handle_cast({:init}, _state) do
 
-        {:noreply, %{:turn => 0, :state => :started}}
+        cur_time = :os.timestamp()
+        time_int = String.to_integer("#{elem(cur_time, 0)}#{elem(cur_time, 1)}")
+
+        {:noreply, %{:turn => 0, :state => :started, :started_time => time_int }}
     end
 end
