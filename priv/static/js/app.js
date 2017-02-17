@@ -23,7 +23,7 @@ chan.on("state", state => {
 
     if (state.board) {
     
-        if (state.state === "starting" || !boardConstraints) {
+        if (state.state.state === "starting" || !boardConstraints) {
             drawBoard(state.board);
         }
 
