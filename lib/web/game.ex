@@ -196,6 +196,11 @@ defmodule Web.Game do
 
          GenServer.cast(:game_server, {:turn})
 
+         if :rand.uniform() < 0.1 do
+
+            Board.add_food()
+         end
+
          Web.SnakeChannel.broadcast_state()
 
         :timer.apply_after(:timer.seconds(1), Web.Game, :perform_turn, [])

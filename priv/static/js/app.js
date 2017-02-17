@@ -111,12 +111,17 @@ function drawTokens(board_state) {
             
             const token = board[i][j];
 
-            if (token.state !== "empty") {
+            let hitX = boardConstraints.startX + i * boardConstraints.wScale;
+            let hitY = boardConstraints.startY + j * boardConstraints.hScale;
 
-                let hitX = boardConstraints.startX + i * boardConstraints.wScale;
-                let hitY = boardConstraints.startY + j * boardConstraints.hScale;
+            if (token.state === "head" || token.state === "body") {
 
                 let rekt = makeRectangle(hitX, hitY, boardConstraints.wScale, boardConstraints.hScale, "rgba(255,255,255,1)", "rgba(0, 0, 0, 1)");
+
+                holder.appendChild(rekt);
+            } else if (token.state === "food") {
+
+                let rekt = makeRectangle(hitX, hitY, boardConstraints.wScale, boardConstraints.hScale, "rgba(255,0,255,1)", "rgba(0, 0, 0, 1)");
 
                 holder.appendChild(rekt);
             }

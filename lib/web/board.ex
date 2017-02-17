@@ -50,6 +50,13 @@ defmodule Web.Board do
         GenServer.call(:board_server, {:get_space, normalized_board})
     end
 
+    def add_food() do
+        
+        tile = get_unoccupied_space()
+
+        set_board_tile(tile.x, tile.y, :food, nil)
+    end
+
     # Server API
     def handle_call({:put_board, board}, _from, state) do
 
