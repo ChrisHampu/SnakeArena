@@ -181,7 +181,7 @@ defmodule Web.Game do
 
     def is_game_over(_moves) do
         
-        length(Enum.filter(Snakes.get_snakes(), fn snake -> snake.health_points > 0 end)) == 0
+        length(Enum.filter(Web.Snakes.get_snakes(), fn snake -> snake.health_points > 0 end)) == 0
     end
 
     def next_turn(is_over) when is_over == true do
