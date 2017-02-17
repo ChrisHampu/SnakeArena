@@ -196,7 +196,7 @@ defmodule Web.Game do
 
          GenServer.cast(:game_server, {:turn})
 
-         # TODO: broadcast state update
+         Web.SnakeChannel.broadcast_state()
 
         :timer.apply_after(:timer.seconds(1), Web.Game, :perform_turn, [])
     end
@@ -235,6 +235,6 @@ defmodule Web.Game do
 
     def handle_cast({:turn}, state) do
 
-        {:noreply, %{:turn => state.turn + 1}}
+        {:noreply, Map.merge(state, %{:turn => state.turn + 1})}
     end
 end

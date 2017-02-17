@@ -1,5 +1,8 @@
 <div class="field">
-
+    <svg id="game_board">
+        <g id="game_rect" />
+        <g id="game_tokens" />
+    </svg>
 </div>
 <div class="scoreboard">
 
