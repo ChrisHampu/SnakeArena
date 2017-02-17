@@ -137,32 +137,29 @@ defmodule Web.Game do
         initial_board = Board.get_board()
         normalized_board = Board.get_normalized_board()
 
-        new_moves = for move <- moves,
+        for move <- moves,
             name = elem(move, 0),
             direction = elem(move, 1),
             position = Enum.find(normalized_board, fn cell -> cell[:snake] == name && cell[:state] == :head end),
             dest_coord = get_new_position_from_move(position.x, position.y, direction),
             dest_tile = Board.get_board_tile(dest_coord[:x], dest_coord[:y]) do
                 cond do
-                    dest_tile == nil -> {name, position, direction, "dead"}
-                    dest_tile.state == :empty -> {name, position, direction, dest_coord}
+                    dest_tile == nil || dest_tile.state == :body -> snake_dead(name, position.x, position.y)
+                    dest_tile.state == :food -> grow_snake(name, position.x, position.y, dest_coord[:x], dest_coord[:y])
+                    dest_tile.state == :empty -> move_snake(name, position.x, position.y, dest_coord[:x], dest_coord[:y])
                 end
-        end
-
-        for move <- new_moves,
-            position = elem(move, 1),
-            dest = elem(move, 3),
-            name = elem(move, 0) do
-            cond do
-                dest == "dead" -> snake_dead(name, position.x, position.y)
-                true -> move_snake(name, position.x, position.y, dest[:x], dest[:y])
-            end
         end
     end
 
     def move_snake(name, x, y, new_x, new_y) do
 
         Board.set_board_tile(x, y, :empty, nil)
+        Board.set_board_tile(new_x, new_y, :head, name)
+    end
+
+    def grow_snake(name, x, y, new_x, new_y) do
+
+        Board.set_board_tile(x, y, :body, name)
         Board.set_board_tile(new_x, new_y, :head, name)
     end
 
@@ -184,7 +181,7 @@ defmodule Web.Game do
 
     def is_game_over(_moves) do
         
-        Enum.filter(Snakes.get_snakes(), fn snake -> snake.health_points > 0 end) == 0
+        length(Enum.filter(Snakes.get_snakes(), fn snake -> snake.health_points > 0 end)) == 0
     end
 
     def next_turn(is_over) when is_over == true do

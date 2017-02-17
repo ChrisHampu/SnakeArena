@@ -44,7 +44,7 @@ defmodule Web.Snakes do
 
     def handle_call({:set_health, name, health}, _from, state) do
 
-        index = Enum.find(state, fn snake -> snake.name == name end)
+        index = Enum.find_index(state, fn snake -> snake.name == name end)
 
         new_state = List.update_at(state, index, &Map.merge(&1, %{:health_points => health}))
 
