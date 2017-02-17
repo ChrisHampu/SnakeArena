@@ -1,6 +1,7 @@
 body, html {
   height: 100vh;
   margin: 0;
+  font-family: 'Open Sans', sans-serif;
 }
 
 .container {
@@ -10,13 +11,18 @@ body, html {
 }
 
 .header {
-  background-color: teal;
+  padding: 1.25rem;
+  box-sizing: border-box;
+  background-color: #9C27B0;
+  color: white;
 }
 
 .title {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   position: absolute;
-  left: 1rem;
+  left: 1.5rem;
+  text-transform: uppercase;
+  vertical-align: middle;
 }
 
 .info {
@@ -25,6 +31,10 @@ body, html {
 
 .status {
   font-size: 1rem;
+}
+
+.sub-status > div {
+  display: inline-block;
 }
 
 .time {
@@ -45,7 +55,8 @@ main[role="main"] {
 .field {
   flex: 1;
   margin: 1.5rem;
-  border: 1px solid black;
+  border: 2px solid #212121;
+  background-color: #616161;
 }
 
 .scoreboard {

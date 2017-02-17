@@ -21,6 +21,11 @@ defmodule Web.Snakes do
         GenServer.call(:snake_server, {:get})
     end
 
+    def set_snake_health(name, health) do
+        
+        GenServer.call(:snake_server, {:set_health, name, health})
+    end
+
     # Server API
     def handle_cast({:add_snakes, snakes}, state) do
 
@@ -35,5 +40,14 @@ defmodule Web.Snakes do
     def handle_call({:get}, _from, state) do
 
         {:reply, state, state}
+    end
+
+    def handle_call({:set_health, name, health}, _from, state) do
+
+        index = Enum.find(state, fn snake -> snake.name == name end)
+
+        new_state = List.update_at(state, index, &Map.merge(&1, %{:health_points => health}))
+
+        {:reply, new_state, new_state}
     end
 end

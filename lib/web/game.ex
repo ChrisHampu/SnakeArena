@@ -54,6 +54,8 @@ defmodule Web.Game do
 
             GenServer.cast(:game_server, {:init})
 
+            Web.SnakeChannel.broadcast_state()
+
             :timer.apply_after(:timer.seconds(3), Web.Game, :start_game, [])
 
             {:ok, "New game starting in 1 minute"}
@@ -97,6 +99,10 @@ defmodule Web.Game do
 
     def start_game do
     
+        GenServer.cast(:game_server, {:start})
+
+        Web.SnakeChannel.broadcast_state()
+
         perform_turn()
     end
 
@@ -105,6 +111,8 @@ defmodule Web.Game do
         get_turn_state()
         |> retrieve_moves
         |> process_moves
+        |> is_game_over
+        |> next_turn
     end
 
     # Send post request to each client to retrieve the next moves based on current state
@@ -136,7 +144,7 @@ defmodule Web.Game do
             dest_coord = get_new_position_from_move(position.x, position.y, direction),
             dest_tile = Board.get_board_tile(dest_coord[:x], dest_coord[:y]) do
                 cond do
-                    dest_tile == nil -> "dead"
+                    dest_tile == nil -> {name, position, direction, "dead"}
                     dest_tile.state == :empty -> {name, position, direction, dest_coord}
                 end
         end
@@ -146,7 +154,7 @@ defmodule Web.Game do
             dest = elem(move, 3),
             name = elem(move, 0) do
             cond do
-                move == "dead" -> Board.set_board_tile(move.position.x, move.position.y, :empty, nil)
+                dest == "dead" -> snake_dead(name, position.x, position.y)
                 true -> move_snake(name, position.x, position.y, dest[:x], dest[:y])
             end
         end
@@ -156,6 +164,12 @@ defmodule Web.Game do
 
         Board.set_board_tile(x, y, :empty, nil)
         Board.set_board_tile(new_x, new_y, :head, name)
+    end
+
+    def snake_dead(name, x, y) do 
+
+        Board.set_board_tile(x, y, :empty, nil)
+        Snakes.set_snake_health(name, 0)
     end
 
     def get_new_position_from_move(x, y, direction) do
@@ -168,9 +182,30 @@ defmodule Web.Game do
         end
     end
 
+    def is_game_over(_moves) do
+        
+        Enum.filter(Snakes.get_snakes(), fn snake -> snake.health_points > 0 end) == 0
+    end
+
+    def next_turn(is_over) when is_over == true do
+
+        end_game()
+    end
+
+    def next_turn(_is_over) do
+
+         GenServer.cast(:game_server, {:turn})
+
+         # TODO: broadcast state update
+
+        :timer.apply_after(:timer.seconds(1), Web.Game, :perform_turn, [])
+    end
+
     def end_game do
 
         GenServer.call(:game_server, {:end})
+
+        Web.SnakeChannel.broadcast_state()
     end
     
     # Server API
@@ -187,9 +222,19 @@ defmodule Web.Game do
 
     def handle_cast({:init}, _state) do
 
+        {:noreply, %{:turn => 0, :state => :starting}}
+    end
+
+    def handle_cast({:start}, _state) do
+
         cur_time = :os.timestamp()
         time_int = String.to_integer("#{elem(cur_time, 0)}#{elem(cur_time, 1)}")
 
-        {:noreply, %{:turn => 0, :state => :started, :started_time => time_int }}
+        {:noreply, %{:turn => 1, :state => :started, :started_time => time_int }}
+    end
+
+    def handle_cast({:turn}, state) do
+
+        {:noreply, %{:turn => state.turn + 1}}
     end
 end
