@@ -147,6 +147,7 @@ defmodule Web.Game do
                     dest_tile == nil || dest_tile.state == :body -> snake_dead(name, position.x, position.y)
                     dest_tile.state == :food -> grow_snake(name, position.x, position.y, dest_coord[:x], dest_coord[:y])
                     dest_tile.state == :empty -> move_snake(name, position.x, position.y, dest_coord[:x], dest_coord[:y])
+                    dest_tile.state == :head -> collide_snake(name, position.x, position.y, dest_coord[:x], dest_coord[:y])
                 end
         end
     end
@@ -167,6 +168,25 @@ defmodule Web.Game do
 
         Board.set_board_tile(x, y, :empty, nil)
         Snakes.set_snake_health(name, 0)
+    end
+
+    def collide_snake(name, x, y, new_x, new_y) do
+
+        normalized_board = Board.get_normalized_board()
+
+        dest_tile = Board.get_board_tile(new_x, new_y)
+
+        dest_snake_len = length(Enum.filter(normalized_board, fn tile -> tile.snake == dest_tile.snake end))
+
+        this_snake_len = length(Enum.filter(normalized_board, fn tile -> tile.snake == name end))
+
+        cond do
+            dest_snake_len > this_snake_len -> snake_dead(name, x, y)
+            this_snake_len > dest_snake_len -> snake_dead(dest_tile.snake, new_x, new_y)
+            true ->
+                snake_dead(name, x, y)
+                snake_dead(dest_tile.snake, new_x, new_y)
+        end
     end
 
     def get_new_position_from_move(x, y, direction) do

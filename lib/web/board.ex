@@ -10,7 +10,7 @@ defmodule Web.Board do
         x = max(8, :rand.uniform(12))
         y = max(8, :rand.uniform(12))
 
-        board = Enum.map(1..x, fn x -> Enum.map(1..y, fn y -> %{:state => :empty} end) end)
+        board = Enum.map(1..x, fn x -> Enum.map(1..y, fn y -> %{:state => :empty, :snake => nil} end) end)
 
         GenServer.call(:board_server, {:put_board, %{board: board, width: x, height: y}})
     end
