@@ -40,7 +40,7 @@ defmodule Web.Board do
     # Set the tile at x/y and returns new board state
     def set_board_tile(x, y, state, snake \\ nil) do
 
-        GenServer.cast(:board_server, {:set_board_tile, x, y, state, snake})
+        GenServer.call(:board_server, {:set_board_tile, x, y, state, snake})
     end
 
     def get_unoccupied_space() do
@@ -48,6 +48,11 @@ defmodule Web.Board do
         normalized_board = get_normalized_board()
 
         GenServer.call(:board_server, {:get_space, normalized_board})
+    end
+
+    def remove_snake(name) do
+
+        GenServer.call(:board_server, {:remove_snake, name})
     end
 
     def add_food() do
@@ -77,13 +82,13 @@ defmodule Web.Board do
         end
     end
 
-    def handle_cast({:set_board_tile, x, y, tile_state, snake}, state) do
+    def handle_call({:set_board_tile, x, y, tile_state, snake}, _from, state) do
 
         new_board = List.replace_at(state[:board], x, List.replace_at(Enum.at(state[:board], x), y, %{:state => tile_state, :snake => snake}))
 
         new_state = Map.put(state, :board, new_board)
 
-        {:noreply, new_state}
+        {:reply, new_board, new_state}
     end
 
     def handle_call({:get_space, normalized_board}, _from, state) do
@@ -96,5 +101,21 @@ defmodule Web.Board do
 
         picked = :rand.uniform(length(spaces) - 1)
         {:reply, Enum.at(spaces, picked), state}
+    end
+
+    def handle_call({:remove_snake, name}, _from, state) do
+
+        new_board = Enum.map(state[:board], fn col ->
+            Enum.map(col, fn row ->
+                cond do
+                    row.snake == name -> Map.merge(row, %{:state => :empty, :snake => nil})
+                    true -> row
+                end
+            end)
+        end)
+
+        new_state = Map.put(state, :board, new_board)
+
+        {:reply, new_board, new_state}
     end
 end

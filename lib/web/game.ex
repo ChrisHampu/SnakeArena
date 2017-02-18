@@ -37,20 +37,16 @@ defmodule Web.Game do
             :color => snake["color"],
             :head_url => snake["head_url"],
             :taunt => snake["taunt"],
-            :move_url => snake["move_url"]
+            :move_url => snake["move_url"],
+            :health_points => 100,
+            :coords => [Map.values(Map.take(Board.get_unoccupied_space(), [:x, :y]))]
         } end)
 
         if length(queue) == 0 do
             {:error, "Not enough snakes in the game"}
         else
 
-            # Assign each snake a random spot on the board, full health, update board, then cache snake data
-            Snakes.add(for snake <- queue,
-                space = Board.get_unoccupied_space,
-                snake = Map.merge(snake, %{:health_points => 100}),
-                Board.set_board_tile(space.x, space.y, :head, snake.name) do
-                snake
-            end)
+            Snakes.add(queue)
 
             GenServer.cast(:game_server, {:init})
 
@@ -154,19 +150,37 @@ defmodule Web.Game do
 
     def move_snake(name, x, y, new_x, new_y) do
 
-        Board.set_board_tile(x, y, :empty, nil)
-        Board.set_board_tile(new_x, new_y, :head, name)
+        Board.remove_snake(name)
+
+        new_coords = Snakes.move(name, new_x, new_y)
+
+        head = hd(new_coords)
+
+        Board.set_board_tile(Enum.at(head, 0), Enum.at(head, 1), :head, name)
+
+        if length(new_coords) > 0 do
+            for coord <- tl(new_coords) do
+                Board.set_board_tile(Enum.at(coord, 0), Enum.at(coord, 1), :body, name)
+            end
+        end
     end
 
     def grow_snake(name, x, y, new_x, new_y) do
 
+        # Location of the food is added to snake corods list
+        Snakes.grow(name, new_x, new_y)
+
+        # Update board state to reflect new body/head and position
         Board.set_board_tile(x, y, :body, name)
         Board.set_board_tile(new_x, new_y, :head, name)
     end
 
     def snake_dead(name, x, y) do 
 
-        Board.set_board_tile(x, y, :empty, nil)
+        # Remove all parts of this snake from the board
+        Board.remove_snake(name)
+
+        # Update health
         Snakes.set_snake_health(name, 0)
     end
 
