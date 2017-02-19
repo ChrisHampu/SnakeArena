@@ -52,7 +52,7 @@ defmodule Web.Game do
 
             Web.SnakeChannel.broadcast_state()
 
-            :timer.apply_after(:timer.seconds(3), Web.Game, :start_game, [])
+            :timer.apply_after(:timer.seconds(5), Web.Game, :start_game, [])
 
             {:ok, "New game starting in 1 minute"}
         end

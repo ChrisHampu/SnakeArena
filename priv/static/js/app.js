@@ -59,17 +59,24 @@ function drawBoard(board) {
 
     rectHolder.innerHTML = "";
 
-    const boardWidth = gameContainer.clientWidth;
-    const boardHeight = gameContainer.clientHeight;
+    const smallest = Math.min(gameContainer.clientWidth, gameContainer.clientHeight);
 
-    gameBoard.style.height = boardHeight;
-    gameBoard.style.width = boardWidth;
+    const boardWidth = smallest;
+    const boardHeight = smallest;
+
+    const xDiff = gameContainer.clientWidth - smallest;
+    const yDiff = gameContainer.clientHeight - smallest;
+
+    gameBoard.style.height = gameContainer.clientHeight;
+    gameBoard.style.width = gameContainer.clientWidth;
 
     const wScale = boardWidth / (board.width + 1 || 1);
     const hScale = boardHeight / (board.height + 1 || 1);
 
-    let startX = wScale / 2;
-    let startY = hScale / 2;
+    let startX = wScale / 2 + xDiff / 2;
+    let startY = hScale / 2 + yDiff / 2;
+
+    console.log(smallest, xDiff, yDiff, wScale, hScale, startX, startY);
 
     for (var i = 0; i < board.height; i++) {
 
@@ -83,7 +90,7 @@ function drawBoard(board) {
         }
 
         startY += hScale;
-        startX = wScale / 2;
+        startX = wScale / 2 + xDiff / 2;
     }
 
     boardConstraints = {
@@ -91,8 +98,8 @@ function drawBoard(board) {
         boardHeight,
         wScale,
         hScale,
-        startX: wScale / 2,
-        startY: hScale / 2,
+        startX: wScale / 2 + xDiff / 2,
+        startY: hScale / 2 + yDiff / 2,
         gameBoard
     };
 }
@@ -121,9 +128,11 @@ function drawTokens(board_state) {
                 holder.appendChild(rekt);
             } else if (token.state === "food") {
 
-                let rekt = makeRectangle(hitX, hitY, boardConstraints.wScale, boardConstraints.hScale, "rgba(255,0,255,1)", "rgba(0, 0, 0, 1)");
+                hitX = hitX + boardConstraints.wScale / 2;
+                hitY = hitY + boardConstraints.hScale / 2;
 
-                holder.appendChild(rekt);
+                let circ = makeCircle(hitX, hitY, Math.min(boardConstraints.wScale / 3, boardConstraints.hScale / 3), "#ff00ff");
+                holder.appendChild(circ);
             }
         }
     }
