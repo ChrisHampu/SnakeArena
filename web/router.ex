@@ -27,9 +27,18 @@ defmodule Web.Router do
       post "/status", Web.APIController, :status
 
       # Testing functionality as a dummy snake
-      post "/test_snake", Web.APIController, :test_snake
-      post "/move", Web.APIController, :move
-      post "/start", Web.APIController, :start
+
+      scope "/snake1", as: :snake1 do
+        post "/test_snake", Web.APIController, :test_snake
+        post "/move", Web.APIController, :move
+        post "/start", Web.APIController, :start
+      end
+
+      scope "/snake2", as: :snake2 do
+        post "/test_snake", Web.APIController, :test_snake2
+        post "/move", Web.APIController, :move2
+        post "/start", Web.APIController, :start2
+      end
     end
   end
 end

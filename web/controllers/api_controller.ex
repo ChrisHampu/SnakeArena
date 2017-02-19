@@ -19,9 +19,17 @@ defmodule Web.APIController do
   def test_snake(conn, _params) do
 
     # Queue the URL root for the test snake API
-    Queue.add({"localhost:4000/api/v1"})
+    Queue.add({"localhost:4000/api/v1/snake1"})
 
     render(conn, "test_snake.json")
+  end
+
+  def test_snake2(conn, _params) do
+
+    # Queue the URL root for the test snake API
+    Queue.add({"localhost:4000/api/v1/snake2"})
+
+    render(conn, "test_snake2.json")
   end
 
   def start(conn, _params) do
@@ -29,8 +37,18 @@ defmodule Web.APIController do
     render(conn, "start.json")
   end
 
+  def start2(conn, _params) do
+
+    render(conn, "start2.json")
+  end
+
   def move(conn, _params) do
 
     render(conn, "move.json")
+  end
+
+  def move2(conn, _params) do
+
+    render(conn, "move2.json")
   end
 end

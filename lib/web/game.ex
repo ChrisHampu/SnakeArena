@@ -20,42 +20,13 @@ defmodule Web.Game do
     # Initiates game logic using current queue
     def new_game do
 
-        Board.init_board() 
-        board = Board.get_board()
+        GenServer.cast(:game_server, {:init})
 
-        state = elem(Poison.encode(%{:width => board[:width], :height => board[:height]}), 1)
+        Web.SnakeChannel.broadcast_state()
 
-        queue = Queue.pull_all()
-        |> Enum.map(&elem(&1, 0))
-        |> Enum.map(fn url -> HTTPoison.post("#{url}/start", state, [{"Content-Type", "application/json"}], [recv_timeout: 200]) end) # Send post request
-        |> Enum.filter(fn status -> elem(status, 0) == :ok end) # Ensure request succeeded
-        |> Enum.map(&Map.get(elem(&1, 1), :body)) # Get request body
-        |> Enum.map(&Poison.Parser.parse(&1)) # Parse json
-        |> Enum.filter_map(&(elem(&1, 0) == :ok), &(elem(&1, 1))) # Ensure parser succeeded
-        |> Enum.map(fn snake -> %{ # Transform keys to atoms and take only whats needed
-            :name => snake["name"],
-            :color => snake["color"],
-            :head_url => snake["head_url"],
-            :taunt => snake["taunt"],
-            :move_url => snake["move_url"],
-            :health_points => 100,
-            :coords => [Map.values(Map.take(Board.get_unoccupied_space(), [:x, :y]))]
-        } end)
+        :timer.apply_after(:timer.seconds(5), Web.Game, :start_game, [])
 
-        if length(queue) == 0 do
-            {:error, "Not enough snakes in the game"}
-        else
-
-            Snakes.add(queue)
-
-            GenServer.cast(:game_server, {:init})
-
-            Web.SnakeChannel.broadcast_state()
-
-            :timer.apply_after(:timer.seconds(5), Web.Game, :start_game, [])
-
-            {:ok, "New game starting in 1 minute"}
-        end
+        {:ok, "New game starting in 1 minute"}
     end
 
     def get_game_state do
@@ -94,12 +65,44 @@ defmodule Web.Game do
     end
 
     def start_game do
-    
-        GenServer.cast(:game_server, {:start})
 
-        Web.SnakeChannel.broadcast_state()
+        Board.init_board() 
+        board = Board.get_board()
 
-        perform_turn()
+        state = elem(Poison.encode(%{:width => board[:width], :height => board[:height]}), 1)
+
+        queue = Queue.pull_all()
+        |> Enum.map(&elem(&1, 0))
+        |> Enum.map(fn url -> HTTPoison.post("#{url}/start", state, [{"Content-Type", "application/json"}], [recv_timeout: 200]) end) # Send post request
+        |> Enum.filter(fn status -> elem(status, 0) == :ok end) # Ensure request succeeded
+        |> Enum.map(&Map.get(elem(&1, 1), :body)) # Get request body
+        |> Enum.map(&Poison.Parser.parse(&1)) # Parse json
+        |> Enum.filter_map(&(elem(&1, 0) == :ok), &(elem(&1, 1))) # Ensure parser succeeded
+        |> Enum.map(fn snake -> %{ # Transform keys to atoms and take only whats needed
+            :name => snake["name"],
+            :color => snake["color"],
+            :head_url => snake["head_url"],
+            :taunt => snake["taunt"],
+            :move_url => snake["move_url"],
+            :health_points => 100,
+            :coords => [Map.values(Map.take(Board.get_unoccupied_space(), [:x, :y]))]
+        } end)
+
+       if length(queue) == 0 do
+
+            end_game()
+
+            {:error, "Not enough snakes in the game"}
+        else
+
+            Snakes.add(queue)
+
+            GenServer.cast(:game_server, {:start})
+
+            Web.SnakeChannel.broadcast_state()
+
+            perform_turn()
+        end
     end
 
     def perform_turn do
