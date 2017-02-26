@@ -9,9 +9,9 @@ defmodule Web do
     # Define workers and child supervisors to be supervised
     children = [
       # Start the Ecto repository
-      supervisor(Web.Repo, []),
+      #supervisor(Web.Repo, []),
       # Start the endpoint when the application starts
-      supervisor(Web.Endpoint, []),
+      #supervisor(Web.Endpoint, []),
       # Start your own worker by calling: Web.Worker.start_link(arg1, arg2, arg3)
       # worker(Web.Worker, [arg1, arg2, arg3]),
       worker(Web.Board, [%{}, [name: :board_server]]),
