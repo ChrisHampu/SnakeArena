@@ -69,24 +69,32 @@ defmodule Web.Game do
         Board.init_board() 
         board = Board.get_board()
 
-        state = elem(Poison.encode(%{:width => board[:width], :height => board[:height]}), 1)
+        state = elem(Poison.encode(%{:width => board[:width], :height => board[:height], :game_id => 'placeholder'}), 1)
 
         queue = Queue.pull_all()
         |> Enum.map(&elem(&1, 0))
-        |> Enum.map(fn url -> HTTPoison.post("#{url}/start", state, [{"Content-Type", "application/json"}], [recv_timeout: 200]) end) # Send post request
-        |> Enum.filter(fn status -> elem(status, 0) == :ok end) # Ensure request succeeded
-        |> Enum.map(&Map.get(elem(&1, 1), :body)) # Get request body
-        |> Enum.map(&Poison.Parser.parse(&1)) # Parse json
-        |> Enum.filter_map(&(elem(&1, 0) == :ok), &(elem(&1, 1))) # Ensure parser succeeded
-        |> Enum.map(fn snake -> %{ # Transform keys to atoms and take only whats needed
-            :name => snake["name"],
-            :color => snake["color"],
-            :head_url => snake["head_url"],
-            :taunt => snake["taunt"],
-            :move_url => snake["move_url"],
-            :health_points => 100,
-            :coords => [Map.values(Map.take(Board.get_unoccupied_space(), [:x, :y]))]
-        } end)
+        |> Enum.map(fn url -> 
+            request = HTTPoison.post("#{url}/start", state, [{"Content-Type", "application/json"}], [recv_timeout: 200])
+
+            cond do
+                elem(request, 0) == :ok ->
+                    snake = Map.get(elem(request, 1), :body)
+                    |> Poison.Parser.parse()
+                    |> elem(1)
+                    
+                    {:ok, %{ # Transform keys to atoms and take only whats needed
+                        :name => snake["name"],
+                        :color => snake["color"],
+                        :head_url => snake["head_url"],
+                        :taunt => snake["taunt"],
+                        :move_url => "#{url}/move",
+                        :health_points => 100,
+                        :coords => [Map.values(Map.take(Board.get_unoccupied_space(), [:x, :y]))]
+                    }}
+                true -> {:error, %{}}
+            end
+        end)
+        |> Enum.filter_map(&elem(&1, 0) == :ok, &elem(&1, 1))
 
        if length(queue) == 0 do
 
